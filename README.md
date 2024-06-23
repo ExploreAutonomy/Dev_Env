@@ -539,8 +539,17 @@ git clone https://github.com/PX4/px4_ros_com.git
 cd ~/ros2_px4_ws
 
 sw
+
+colcon build
 ```
 This might take a while.
+
+You can test it by running the following command:
+```
+cd ~/ros2_px4_ws
+ros2 launch px4_ros_com sensor_combined_listener.launch.py
+```
+
 
 You now have a working PX4 DDS with SITL running in the container. You can now develop for PX4 DDS in the ros2_px4_ws workspace. You also now how to start the PX4 DDS.
 
@@ -559,12 +568,131 @@ Copy the `<CONTAINER ID>` and run the following command to backup the container:
 docker commit <CONTAINER ID> ardupilot_px4_dds_mavros_backup_px4
 ```
 
-## Install MAVROS
+## Install/RUN MAVROS
+This is the instructions to install and run MAVROS in the container.
+This might break the PX4 DDS, so it is recommended to backup the container before running this.
 
+### Install MAVROS
 To install MAVROS, run the following commands in the container:
 ```
 sudo apt-get install ros-humble-mavros ros-humble-mavros-extras
+
+wget https://raw.githubusercontent.com/mavlink/mavros/master/mavros/scripts/install_geographiclib_datasets.sh
+
+sudo bash ./install_geographiclib_datasets.sh   
+
 ```
+
+
+### RUN MAVROS
+You need 3 terminals to run MAVROS. Open 3 terminals and connect to the container in each terminal.
+
+Run the following commands in the first terminal:
+```
+cd
+
+sim_vehicle.py -v ArduCopter 
+```
+This will start the SITL for the drone in ArduCopter mode. It will take a while first time because it will compile the code.
+
+Run the following commands in the second terminal:
+```
+ros2 launch mavros apm.launch fcu_url:=udp://:14550@
+```
+
+Run the following commands in the third terminal:
+```
+sw
+ros2 topic list
+```
+You should see a list of topics. If you see a list of topics, you are connected to the MAVROS and it is running.
+
+
+
+## Setup ZeroTier 
+[source of content](https://docs.zerotier.com/docker/)
+
+When setting up ZeroTier, you need to have a ZeroTier account. You can create an account at [ZeroTier](https://my.zerotier.com/).
+
+### Create a ZeroTier network
+To create a ZeroTier network, follow the steps below:
+
+
+1. Log in to your ZeroTier account.
+[ZeroTier](https://my.zerotier.com/)
+
+2. Click on the **Create A Network** button.
+![alt text](image-1.png)
+
+3. Click on the network you just created.
+![alt text](image-2.png)
+
+4. Give the network a name and a description.
+![alt text](image-3.png)
+
+5. Remember the **Network ID**, you will need it later.
+![alt text](image-4.png)
+
+
+### Install ZeroTier in docker container
+To install ZeroTier in the docker container, run the following commands in the container:
+
+```
+sudo apt install curl
+
+curl -s https://install.zerotier.com | sudo bash
+
+/usr/sbin/zerotier-one -d
+```
+
+Now make zerotier start at boot:
+```
+cd
+cd ..
+ne ros_entrypoint.sh
+```
+
+Add the following lines to the end of the file:
+```
+sudo service zerotier-one start
+```
+
+And save the file.
+
+
+### Save final container without joining ZeroTier network
+Now is a good time to do a final save of the container, so it doesn't auto joins the ZeroTier network. You can do this by running the following command in the host machine:
+```
+docker ps
+```
+It should look something like this:
+```
+CONTAINER ID   IMAGE          COMMAND                  CREATED          STATUS          PORTS     NAMES
+<CONTAINE ID>   <96b1a49f525e>   "/ros_entrypoint.sh …"   18 seconds ago   Up 18 seconds             ardupilot_px4_dds_mavros
+```
+
+Copy the `<CONTAINER ID>` and run the following command to backup the container:
+```
+docker commit <CONTAINER ID> ea_dev_env:latest
+```
+This will save the container as ea_dev_env:latest. You can change the name to whatever you want. This will take a while and no feedback will be given in the terminal. Have patience faith. And go drink som water, stay hydrated bro or sis.
+
+### Join ZeroTier network
+To join the ZeroTier network, run the following commands in the container:
+
+```
+zerotier-cli join <NETWORK ID>
+```
+
+![alt text](image-5.png)
+
+Go to the ZeroTier web interface and accept the container to join the network, and give it a name.
+
+![alt text](image-6.png)
+
+Now do the same for the host machine. Or any other machine you want to connect to the ZeroTier network. The ros topics will now be automatically shared between the machines.
+
+
 
 
 
