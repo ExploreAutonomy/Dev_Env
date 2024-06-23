@@ -642,7 +642,7 @@ sudo apt install curl
 
 curl -s https://install.zerotier.com | sudo bash
 
-/usr/sbin/zerotier-one -d
+sudo service zerotier-one start
 ```
 
 Now make zerotier start at boot:
