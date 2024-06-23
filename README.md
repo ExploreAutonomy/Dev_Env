@@ -2,6 +2,36 @@ Author: Casper Augustsson Savinov
 mail: casper9429@gmail.com
 Date: 2024-07-23
 
+- [Dev\_Env](#dev_env)
+  - [Requirements](#requirements)
+  - [Install Docker](#install-docker)
+    - [Install Docker Engine on Ubuntu 22.04 LTS](#install-docker-engine-on-ubuntu-2204-lts)
+    - [Install Docker Desktop on Ubuntu 22.04 LTS](#install-docker-desktop-on-ubuntu-2204-lts)
+    - [Sign in to Docker Desktop](#sign-in-to-docker-desktop)
+  - [Create the docker container and connect to it](#create-the-docker-container-and-connect-to-it)
+  - [Start a Docker container](#start-a-docker-container)
+  - [Stop a Docker container](#stop-a-docker-container)
+  - [Install Ros2 Humble](#install-ros2-humble)
+  - [Install/RUN Ardupilot DDS](#installrun-ardupilot-dds)
+    - [Create a workspace for the ardupilot DDS](#create-a-workspace-for-the-ardupilot-dds)
+    - [Install Eprosima Fast DDS and dependencies](#install-eprosima-fast-dds-and-dependencies)
+    - [Setup the ardupilot DDS workspace](#setup-the-ardupilot-dds-workspace)
+    - [Run the ardupilot DDS](#run-the-ardupilot-dds)
+  - [Install/RUN PX4 DDS](#installrun-px4-dds)
+    - [Install PX4](#install-px4)
+    - [Setup Micro-XRCE-DDS-Agent for PX4](#setup-micro-xrce-dds-agent-for-px4)
+    - [RUN PX4 DDS](#run-px4-dds)
+  - [Install/RUN MAVROS](#installrun-mavros)
+    - [Install MAVROS](#install-mavros)
+    - [RUN MAVROS](#run-mavros)
+  - [Setup ZeroTier](#setup-zerotier)
+    - [Create a ZeroTier network](#create-a-zerotier-network)
+    - [Install ZeroTier in docker container](#install-zerotier-in-docker-container)
+    - [Save final container without joining ZeroTier network](#save-final-container-without-joining-zerotier-network)
+    - [Join ZeroTier network](#join-zerotier-network)
+
+
+
 # Dev_Env
 This is a guide to setup a development environment for PX4, Ardupilot, DDS, MAVROS, and ZeroTier in a docker container for drone development. 
 
@@ -144,7 +174,7 @@ pass init <your_generated_gpg-id_public_key>
 ```
 
 
-## Create a docker container and connect to it
+## Create the docker container and connect to it
 Go into docker desktop and search for ardupilot. Click on the ardupilot/ardupilot-dev-ros image and click on the run button. This will create a container with the image.
 ![alt text](content/docker_desktop.png)
 
