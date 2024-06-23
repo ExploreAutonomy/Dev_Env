@@ -1,3 +1,7 @@
+Author: Casper Augustsson Savinov
+mail: casper9429@gmail.com
+Date: 2024-07-23
+
 # Dev_Env
 This is a guide to setup a development environment for PX4, Ardupilot, DDS, MAVROS, and ZeroTier in a docker container for drone development. 
 
@@ -6,8 +10,11 @@ on the host machine may vary. Every thing assumes that you are using a fresh ins
 
 There is nothing limiting the instructions to Docker. Skip the docker part if you want to install the tools on your host machine. A lot of conflict sensitive tools are installed, therefore, if done on the host machine, it is recommended to do it on a fresh installation of Ubuntu 22.04 LTS and be ready to reinstall the OS if things go wrong.
 
+If you are lazy, you can also ask for the docker image from me. You still need to install docker on your machine. The image is around 30 GB. 
+
 ## Requirements
 - A KVM enabled machine with Ubuntu 22.04 LTS installed (only if you want to use docker)
+- Around 50 GB of free space on your machine 
 
 To check if your machine supports KVM, run the following command:
 1. Load the kvm module
@@ -258,7 +265,7 @@ source ~/.bashrc
 ```
 
 
-## Install Ardupilot DDS
+## Install/RUN Ardupilot DDS 
 
 
 ### Create a workspace for the ardupilot DDS
@@ -288,32 +295,34 @@ sudo apt install default-jre
 
 Install Micro-XRCE-DDS-Agent:
 ```
-cd 
-
-cd ros2_ap_ws
+cd ~/ros2_ap_ws
 
 git clone --recurse-submodules https://github.com/ardupilot/Micro-XRCE-DDS-Gen.git
 
 cd Micro-XRCE-DDS-Gen
 
 ./gradlew assemble
+
 ```
 This might take a while.
 
 Add path to the Micro-XRCE-DDS-Agent to the bashrc file:
 ```
-ne ~/.bashrc
+cd ~/ros2_ap_ws/Micro-XRCE-DDS-Gen
+
+echo "export PATH=\$PATH:$PWD/scripts" >> ~/.bashrc
+
+rb
 ```
 
-Add the following line to the end of the file:
-```
-export PATH=$PATH:~/ros2_ap_ws/Micro-XRCE-DDS-Gen/scripts
-```
 
-Next install geograpics_msgs:
+Next install geograpics_msgs and MAVproxy:
 ```
 sudo apt install ros-humble-geographic-msgs
+pip install -U MAVProxy
 ```
+
+
 
 ### Setup the ardupilot DDS workspace
 
@@ -327,6 +336,142 @@ Run the following command
 vcs import --recursive --input  https://raw.githubusercontent.com/ArduPilot/ardupilot/master/Tools/ros2/ros2.repos src
 ```
 This might take a while. It is SLOOOOO O O W.
+
+
+Now update the workspace:
+```
+cd ~/ros2_ap_ws
+sudo apt update
+rosdep update
+sw
+rosdep install --from-paths src --ignore-src
+```
+It will ask you to install some dependencies. Press y to install them.
+
+Now build the workspace:
+```
+cd ~/ros2_ap_ws
+colcon build
+```
+This will take a while. 
+
+If this message appears:
+```
+CMake Warning (dev) at /usr/share/cmake-3.22/Modules/FindPackageHandleStandardArgs.cmake:438 (message):
+  The package name passed to `find_package_handle_standard_args` (tinyxml2)
+  does not match the name of the calling package (TinyXML2).  This can lead
+  to problems in calling code that expects `find_package` result variables
+  (e.g., `_FOUND`) to follow a certain pattern.
+Call Stack (most recent call first):
+  cmake/modules/FindTinyXML2.cmake:40 (find_package_handle_standard_args)
+  /opt/ros/humble/share/fastrtps/cmake/fastrtps-config.cmake:51 (find_package)
+  CMakeLists.txt:153 (find_package)
+This warning is for project developers.  Use -Wno-dev to suppress it.
+```
+SAIKED! Did you get scared? It is just a warning, do not worry about it.
+
+
+
+Next add path to ardupilot SITL to the bashrc file:
+```
+ne ~/.bashrc
+```
+
+Add the following line to the end of the file and save it:
+```
+export PATH=$PATH:~/ros2_ap_ws/src/ardupilot/Tools/autotest
+```
+
+Reload bashrc by tpyping in the terminal:
+```
+rb
+```
+
+You are now ready to run the ardupilot DDS.
+
+### Run the ardupilot DDS
+
+To run the ardupilot DDS, you need to run the following commands in the terminal:
+
+```
+cd ~/ros2_ap_ws
+
+sw
+
+so
+
+ros2 launch ardupilot_sitl sitl_dds_udp.launch.py transport:=udp4 synthetic_clock:=True wipe:=False model:=quad speedup:=1 slave:=0 instance:=0 defaults:=$(ros2 pkg prefix ardupilot_sitl)/share/ardupilot_sitl/config/default_params/copter.parm,$(ros2 pkg prefix ardupilot_sitl)/share/ardupilot_sitl/config/default_params/dds_udp.parm sim_address:=127.0.0.1 master:=tcp:127.0.0.1:5760 sitl:=127.0.0.1:5501'
+```
+
+If you connect another terminal to the container, you can run the following command to connect to the ardupilot DDS:
+```
+cd ~/ros2_ap_ws
+
+sw
+
+so
+
+ros2 topic list
+```
+You should see a list of topics. If you see a list of topics, you are connected to the ardupilot DDS and it is running.
+
+You can connect a third terminal to the container ask the drone to take off by running the following command:
+```
+mavproxy.py 
+
+mode guided
+
+arm throttle
+
+takeoff 100
+```
+You must do this fast, the drone will otherwise disarm itself before taking off.
+
+Now the drone should take off, you can run the following command in the second terminal to see the drone's position using DDS:
+```
+ros2 topic echo /ap/pose/filtered
+```
+
+
+
+Now is a good time to backup the container. You can do this by running the following command in the host machine:
+```
+docker ps -a
+```
+It should look something like this:
+```
+CONTAINER ID   IMAGE          COMMAND                  CREATED          STATUS          PORTS     NAMES
+<CONTAINE ID>   <96b1a49f525e>   "/ros_entrypoint.sh …"   18 seconds ago   Up 18 seconds             ardupilot_px4_dds_mavros
+```
+
+Copy the `<CONTAINER ID>` and run the following command to backup the container:
+```
+docker commit <CONTAINER ID> ardupilot_px4_dds_mavros_backup
+```
+
+
+
+
+## Install/RUN PX4 DDS
+This is the instructions to install and run PX4 DDS in the container.
+This might break the ardupilot DDS, so it is recommended to backup the container before running this.
+
+### Install PX4 
+
+First install the PX4 dependencies:
+```
+pip install --user -U empy==3.3.4 pyros-genmsg setuptools
+```
+Some errors might occur, but it is safe to ignore them. 
+
+```
+cd
+git clone https://github.com/PX4/PX4-Autopilot.git --recursive
+bash ./PX4-Autopilot/Tools/setup/ubuntu.sh
+cd PX4-Autopilot/
+make px4_sitl
+```
+This will take a while.
 
 
 
