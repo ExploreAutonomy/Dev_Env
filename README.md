@@ -446,7 +446,7 @@ CONTAINER ID   IMAGE          COMMAND                  CREATED          STATUS  
 
 Copy the `<CONTAINER ID>` and run the following command to backup the container:
 ```
-docker commit <CONTAINER ID> ardupilot_px4_dds_mavros_backup
+docker commit <CONTAINER ID> ardupilot_px4_dds_mavros_backup_ardupilot
 ```
 
 
@@ -478,6 +478,93 @@ make px4_sitl
 This will take a while. A long while. A very long while. Get a coffee or something.
 
 
+### Setup Micro-XRCE-DDS-Agent for PX4
+```
+cd
+
+git clone https://github.com/eProsima/Micro-XRCE-DDS-Agent.git
+
+cd Micro-XRCE-DDS-Agent
+
+mkdir build
+
+cd build
+
+cmake ..
+
+make
+
+sudo make install
+
+sudo ldconfig /usr/local/lib/
+```
+This will take a while. Check some youtube shorts or something.
+
+
+### RUN PX4 DDS
+Open 3 terminals and connect to the container in each terminal. 
+
+Run the following commands in the first terminal:
+```
+MicroXRCEAgent udp4 -p 8888
+```
+
+Run the following commands in the second terminal:
+```
+cd ~/PX4-Autopilot
+
+make px4_sitl gz_x500
+```
+
+Run the following commands in the third terminal:
+```
+sw
+
+ros2 topic list
+```
+
+You should see a list of topics. If you see a list of topics, you are connected to the PX4 DDS and it is running.
+
+Create a new workspace to develop for with PX4 DDS, this is to import the PX4 messages:
+```
+cd
+
+mkdir -p ros2_px4_ws/src
+
+cd ~/ros2_px4_ws/src
+
+git clone https://github.com/PX4/px4_msgs.git
+git clone https://github.com/PX4/px4_ros_com.git
+
+cd ~/ros2_px4_ws
+
+sw
+```
+This might take a while.
+
+You now have a working PX4 DDS with SITL running in the container. You can now develop for PX4 DDS in the ros2_px4_ws workspace. You also now how to start the PX4 DDS.
+
+It might be a good idea to backup the container now. You can do this by running the following command in the host machine:
+```
+docker ps -a
+```
+It should look something like this:
+```
+CONTAINER ID   IMAGE          COMMAND                  CREATED          STATUS          PORTS     NAMES
+<CONTAINE ID>   <96b1a49f525e>   "/ros_entrypoint.sh …"   18 seconds ago   Up 18 seconds             ardupilot_px4_dds_mavros
+```
+
+Copy the `<CONTAINER ID>` and run the following command to backup the container:
+```
+docker commit <CONTAINER ID> ardupilot_px4_dds_mavros_backup_px4
+```
+
+## Install MAVROS
+
+To install MAVROS, run the following commands in the container:
+```
+sudo apt-get install ros-humble-mavros ros-humble-mavros-extras
+```
 
 
 
@@ -487,10 +574,3 @@ This will take a while. A long while. A very long while. Get a coffee or somethi
 
 
 
-
-
-## Create a docker container with zerotier support from an image
-
-https://docs.zerotier.com/docker/
-
-docker run -it --cap-add=NET_ADMIN --cap-add=SYS_ADMIN --device=/dev/net/tun --name ardupilot_px4_dds_mavros <docker img id> bash
