@@ -3,12 +3,12 @@ mail: casper9429@gmail.com
 Date: 2024-07-23
 
 - [Dev\_Env](#dev_env)
-  - [Lazy Download Container](#lazy-download-container)
   - [Requirements](#requirements)
   - [Install Docker](#install-docker)
     - [Install Docker Engine on Ubuntu 22.04 LTS](#install-docker-engine-on-ubuntu-2204-lts)
     - [Install Docker Desktop on Ubuntu 22.04 LTS](#install-docker-desktop-on-ubuntu-2204-lts)
     - [Sign in to Docker Desktop](#sign-in-to-docker-desktop)
+  - [Lazy Download Container](#lazy-download-container)
   - [Create the docker container and connect to it](#create-the-docker-container-and-connect-to-it)
   - [Start a Docker container](#start-a-docker-container)
   - [Stop a Docker container](#stop-a-docker-container)
@@ -41,14 +41,6 @@ on the host machine may vary. Every thing assumes that you are using a fresh ins
 
 There is nothing limiting the instructions to Docker. Skip the docker part if you want to install the tools on your host machine. A lot of conflict sensitive tools are installed, therefore, if done on the host machine, it is recommended to do it on a fresh installation of Ubuntu 22.04 LTS and be ready to reinstall the OS if things go wrong.
 
-## Lazy Download Container
-If you are lazy, you can download the image from docker hub [here](https://hub.docker.com/r/casper9429/ea_dev_env?uuid=15f4cc82-7cf2-49ac-8b51-20fbad5ffe2d%0A). You still need to install docker on your machine. you will need around 30 GB of memory. 
-
-You still need to run it using:
-```
-docker run -it --cap-add=NET_ADMIN --cap-add=SYS_ADMIN --device=/dev/net/tun --name ardupilot_px4_dds_mavros <IMAGE ID> bash
-```
-For zerotier to work, you need to join the network manually.
 
 ## Requirements
 - A KVM enabled machine with Ubuntu 22.04 LTS installed (only if you want to use docker)
@@ -180,6 +172,15 @@ Initialize pass by running:
 ```
 pass init <your_generated_gpg-id_public_key>
 ```
+
+## Lazy Download Container
+If you are lazy, you can download the image from docker hub [here](https://hub.docker.com/r/casper9429/ea_dev_env?uuid=15f4cc82-7cf2-49ac-8b51-20fbad5ffe2d%0A) and skip the rest of the steps.
+
+You still need to run it using:
+```
+docker run -it --cap-add=NET_ADMIN --cap-add=SYS_ADMIN --device=/dev/net/tun --name ardupilot_px4_dds_mavros <IMAGE ID> bash
+```
+For zerotier to work, you need to join the network manually.
 
 
 ## Create the docker container and connect to it
@@ -564,6 +565,8 @@ ros2 topic list
 You should see a list of topics. If you see a list of topics, you are connected to the PX4 DDS and it is running.
 
 Create a new workspace to develop for with PX4 DDS, this is to import the PX4 messages:
+
+**OBS** if you used the lazy docker container, you can skip this step. The PX4 messages are already installed, and the workspace is already created.
 ```
 cd
 
