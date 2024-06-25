@@ -3,6 +3,7 @@ mail: casper9429@gmail.com
 Date: 2024-07-23
 
 - [Dev\_Env](#dev_env)
+  - [Lazy Download Container](#lazy-download-container)
   - [Requirements](#requirements)
   - [Install Docker](#install-docker)
     - [Install Docker Engine on Ubuntu 22.04 LTS](#install-docker-engine-on-ubuntu-2204-lts)
@@ -40,7 +41,14 @@ on the host machine may vary. Every thing assumes that you are using a fresh ins
 
 There is nothing limiting the instructions to Docker. Skip the docker part if you want to install the tools on your host machine. A lot of conflict sensitive tools are installed, therefore, if done on the host machine, it is recommended to do it on a fresh installation of Ubuntu 22.04 LTS and be ready to reinstall the OS if things go wrong.
 
-If you are lazy, you can also ask for the docker image from me. You still need to install docker on your machine. The image is around 30 GB. 
+## Lazy Download Container
+If you are lazy, you can download the image from docker hub [here](https://hub.docker.com/r/casper9429/ea_dev_env?uuid=15f4cc82-7cf2-49ac-8b51-20fbad5ffe2d%0A). You still need to install docker on your machine. you will need around 30 GB of memory. 
+
+You still need to run it using:
+```
+docker run -it --cap-add=NET_ADMIN --cap-add=SYS_ADMIN --device=/dev/net/tun --name ardupilot_px4_dds_mavros <IMAGE ID> bash
+```
+For zerotier to work, you need to join the network manually.
 
 ## Requirements
 - A KVM enabled machine with Ubuntu 22.04 LTS installed (only if you want to use docker)
